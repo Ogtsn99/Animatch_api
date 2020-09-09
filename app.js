@@ -68,8 +68,7 @@ app.use(bodyParser.json());
 // passport-twitterの設定
 passport.use(new TwitterTokenStrategy({
     consumerKey: TWITTER_CONSUMER_KEY,
-    consumerSecret: TWITTER_CONSUMER_SECRET,
-    callbackURL: API_ROOT + '/auth/twitter/callback'
+    consumerSecret: TWITTER_CONSUMER_SECRET
   },
   // 認証後の処理
   function(token, tokenSecret, profile, done) {
