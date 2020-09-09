@@ -45,9 +45,11 @@ app.use(session({
   secret: 'secret-key',
   resave: false,
   saveUninitialized: false,
-  HttpOnly: false,
-  Domain: CLIENT_ROOT
+  HttpOnly: false
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // セッションに保存
 passport.serializeUser(function(user, done) {
@@ -58,8 +60,6 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(user, done) {
   done(null, user);
 });
-
-app.use(passport.initialize());
 
 // passport-twitterの設定
 passport.use(new TwitterStrategy({
@@ -73,8 +73,6 @@ passport.use(new TwitterStrategy({
   }
 ));
 
-app.use(passport.session());
-
 app.get('/auth/twitter', passport.authenticate('twitter'));
 app.get('/auth/twitter/callback',
   passport.authenticate('twitter', { failureRedirect: '/?auth_failed' }),
@@ -86,6 +84,10 @@ app.get('/auth/twitter/callback',
 
 app.use('/', indexRouter);
 app.use('/success', usersRouter);
+app.use('/logout', (req, res)=> {
+  req.logout()
+  res.redirect('/')
+})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
