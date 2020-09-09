@@ -9,7 +9,6 @@ const TwitterStrategy = require('passport-twitter').Strategy;
 const cors = require('cors')
 require('dotenv').config();
 
-
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
 const API_ROOT = process.env.API_ROOT || 'http://127.0.0.1:3000'
