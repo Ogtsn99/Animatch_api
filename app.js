@@ -112,7 +112,7 @@ app.post('/auth/twitter/reverse', (req, res) => {
   });
 });
 
-app.post('/auth/twitter', (req, res, next) => {
+app.get('/auth/twitter', (req, res, next) => {
   request.post({
     url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
     oauth: {
@@ -161,13 +161,6 @@ function getCurrentUser(req, res, next){
   }else res.json({state: "No user"})
 }
 app.get('/auth/me', authenticate, getCurrentUser)
-
-/*app.get('/auth/twitter/callback',
-  passport.authenticate('twitter', { failureRedirect: '/?auth_failed' }),
-  function (req, res) {
-    console.log(req.user)
-    res.redirect(CLIENT_ROOT);
-  });*/
 
 
 app.use('/', indexRouter);
