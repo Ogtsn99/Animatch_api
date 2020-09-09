@@ -1,1 +1,1 @@
-web: node ./bin/www start`
+web: node ./bin/www start
