@@ -54,17 +54,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
-// ユーザ情報をセッションに保存するので初期化
-/*app.use(session({
-  secret: 'secret-key',
-  resave: false,
-  saveUninitialized: false,
-  HttpOnly: false,
-  cookie: {secure: "auto"}
-}));*/
-
-//app.use(passport.initialize());
-
 // passport-twitterの設定
 passport.use(new TwitterTokenStrategy({
     consumerKey: TWITTER_CONSUMER_KEY,
@@ -87,11 +76,14 @@ function createToken(auth){
 
 function generateToken (req, res, next) {
   req.token = createToken(req.auth);
+  console.log(req.token)
   return next();
 }
 
 function sendToken(req, res) {
   res.setHeader('x-auth-token', req.token);
+  console.log(req.token)
+  res.redirect("http://localhost:4000")
   return res.status(200).send(JSON.stringify(req.user));
 }
 
@@ -127,14 +119,19 @@ app.get('/auth/twitter', (req, res, next) => {
     }
 
     console.log("yay", body);
-    const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-    const parsedBody = JSON.parse(bodyString);
+    try{
+      const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
+      const parsedBody = JSON.parse(bodyString);
 
-    req.body['oauth_token'] = parsedBody.oauth_token;
-    req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
-    req.body['user_id'] = parsedBody.user_id;
+      req.body['oauth_token'] = parsedBody.oauth_token;
+      req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
+      req.body['user_id'] = parsedBody.user_id;
 
-    next();
+      next();
+    }catch(e) {
+      console.log(e)
+      res.redirect("http://localhost:4000") /// 失敗のルートに差し替える
+    }
   });
 }, passport.authenticate('twitter-token', {session: false}), function(req, res, next) {
   if (!req.user) {
@@ -152,7 +149,13 @@ app.get('/auth/twitter', (req, res, next) => {
 var authenticate = expressJwt({
   secret: 'my-secret',
   requestProperty: 'auth',
-  algorithms: ['RS256']
+  algorithms: ['HS256'],
+  getToken: function(req) {
+    if (req.headers['x-auth-token']) {
+      return req.headers['x-auth-token'];
+    }
+    return null;
+  }
 });
 
 function getCurrentUser(req, res, next){
@@ -160,6 +163,7 @@ function getCurrentUser(req, res, next){
     res.json({state: "has user", user: req.user})
   }else res.json({state: "No user"})
 }
+
 app.get('/auth/me', authenticate, getCurrentUser)
 
 
