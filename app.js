@@ -16,9 +16,9 @@ const router = express.Router();
 const mongoose = require('./mongoose');
 require('dotenv').config();
 
-mongoose();
+//mongoose();
 
-const User = require('mongoose').model('User');
+//const User = require('mongoose').model('User');
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
@@ -81,7 +81,7 @@ var createToken = function(auth) {
       id: auth.id
     }, 'my-secret',
     {
-      expiresIn: 60 * 120
+      expiresIn: '365d'
     });
 };
 
@@ -93,7 +93,7 @@ var generateToken = function (req, res, next) {
 var sendToken = function (req, res) {
   res.setHeader('x-auth-token', req.token);
   console.log(req.token)
-  return res.status(200).send(JSON.stringify(req.user));
+  return res.redirect(CLIENT_ROOT)
 };
 
 router.route('/auth/twitter/reverse')
@@ -116,7 +116,7 @@ router.route('/auth/twitter/reverse')
   });
 
 router.route('/auth/twitter')
-  .get((req, res, next) => {
+  .post((req, res, next) => {
     request.post({
       url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
       oauth: {
@@ -129,15 +129,18 @@ router.route('/auth/twitter')
       if (err) {
         return res.send(500, { message: err.message });
       }
+      try{
+        const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
+        const parsedBody = JSON.parse(bodyString);
 
-      const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-      const parsedBody = JSON.parse(bodyString);
+        req.body['oauth_token'] = parsedBody.oauth_token;
+        req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
+        req.body['user_id'] = parsedBody.user_id;
 
-      req.body['oauth_token'] = parsedBody.oauth_token;
-      req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
-      req.body['user_id'] = parsedBody.user_id;
-
-      next();
+        next();
+      }catch (err) {
+        res.send(err)
+      }
     });
   }, passport.authenticate('twitter-token', {session: false}), function(req, res, next) {
     if (!req.user) {
@@ -164,7 +167,7 @@ var authenticate = expressJwt({
     return null;
   }
 });
-
+/*
 var getCurrentUser = function(req, res, next) {
   User.findById(req.auth.id, function(err, user) {
     if (err) {
@@ -184,7 +187,7 @@ var getOne = function (req, res) {
 
   res.json(user);
 };
-
+*/
 router.route('/auth/me')
   .get(authenticate, getCurrentUser, getOne);
 
