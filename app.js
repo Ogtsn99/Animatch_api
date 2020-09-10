@@ -92,6 +92,7 @@ var generateToken = function (req, res, next) {
 
 var sendToken = function (req, res) {
   res.setHeader('x-auth-token', req.token);
+  console.log(req.token)
   return res.status(200).send(JSON.stringify(req.user));
 };
 
