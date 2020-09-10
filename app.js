@@ -81,7 +81,6 @@ var createToken = function(auth) {
       id: auth.id
     }, 'my-secret',
     {
-      algorithms: ['HS256'],
       expiresIn: 60 * 120
     });
 };
