@@ -82,8 +82,6 @@ function generateToken (req, res, next) {
 
 function sendToken(req, res) {
   res.setHeader('x-auth-token', req.token);
-  console.log(req.token)
-  res.redirect("http://localhost:4000")
   return res.status(200).send(JSON.stringify(req.user));
 }
 
@@ -104,7 +102,7 @@ app.post('/auth/twitter/reverse', (req, res) => {
   });
 });
 
-app.get('/auth/twitter', (req, res, next) => {
+app.post('/auth/twitter', (req, res, next) => {
   request.post({
     url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
     oauth: {
