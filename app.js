@@ -102,8 +102,8 @@ router.route('/auth/twitter/reverse')
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
         oauth_callback: "http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback",
-        consumer_key: twitterConfig.consumerKey,
-        consumer_secret: twitterConfig.consumerSecret
+        consumer_key: TWITTER_CONSUMER_KEY,
+        consumer_secret: TWITTER_CONSUMER_SECRET
       }
     }, function (err, r, body) {
       if (err) {
@@ -120,8 +120,8 @@ router.route('/auth/twitter')
     request.post({
       url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
       oauth: {
-        consumer_key: twitterConfig.consumerKey,
-        consumer_secret: twitterConfig.consumerSecret,
+        consumer_key: TWITTER_CONSUMER_KEY,
+        consumer_secret: TWITTER_CONSUMER_SECRET,
         token: req.query.oauth_token
       },
       form: { oauth_verifier: req.query.oauth_verifier }
@@ -189,7 +189,7 @@ router.route('/auth/me')
   .get(authenticate, getCurrentUser, getOne);
 
 app.use('/api/v1', router);
-
+/*
 var authenticate = expressJwt({
   secret: 'my-secret',
   requestProperty: 'auth',
@@ -200,7 +200,7 @@ var authenticate = expressJwt({
     }
     return null;
   }
-});
+});*/
 
 
 app.use('/api/v1', router);
