@@ -3,22 +3,15 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-//const session = require('express-session');
 const request = require('request')
 const passport = require('passport');
 const TwitterTokenStrategy = require('passport-twitter-token');
-//const TwitterStrategy = require('passport-twitter').Strategy;
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 expressJwt = require('express-jwt')
 const cors = require('cors')
 const router = express.Router();
-const mongoose = require('./mongoose');
 require('dotenv').config();
-
-//mongoose();
-
-//const User = require('mongoose').model('User');
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
@@ -166,32 +159,7 @@ var authenticate = expressJwt({
     return null;
   }
 });
-/*
-var getCurrentUser = function(req, res, next) {
-  User.findById(req.auth.id, function(err, user) {
-    if (err) {
-      next(err);
-    } else {
-      req.user = user;
-      next();
-    }
-  });
-};
 
-var getOne = function (req, res) {
-  var user = req.user.toObject();
-
-  delete user['twitterProvider'];
-  delete user['__v'];
-
-  res.json(user);
-};
-*/
-/*router.route('/auth/me')
-  .get(authenticate, getCurrentUser, getOne);*/
-
-app.use('/api/v1', router);
-/*
 var authenticate = expressJwt({
   secret: 'my-secret',
   requestProperty: 'auth',
@@ -202,7 +170,33 @@ var authenticate = expressJwt({
     }
     return null;
   }
-});*/
+});
+
+var getCurrentUser = function(req, res, next) {
+  console.log(req.auth)
+  /*User.findById(req.auth.id, function(err, user) {
+    if (err) {
+      next(err);
+    } else {
+      req.user = user;
+      next();
+    }
+  });*/
+};
+/*
+var getOne = function (req, res) {
+  var user = req.user.toObject();
+
+  delete user['twitterProvider'];
+  delete user['__v'];
+
+  res.json(user);
+};*/
+
+router.route('/auth/me')
+  .get(authenticate, getCurrentUser/*, getOne*/);
+
+app.use('/api/v1', router);
 
 
 app.use('/api/v1', router);
