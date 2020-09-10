@@ -116,7 +116,7 @@ router.route('/auth/twitter/reverse')
   });
 
 router.route('/auth/twitter')
-  .post((req, res, next) => {
+  .get((req, res, next) => {
     request.post({
       url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
       oauth: {
