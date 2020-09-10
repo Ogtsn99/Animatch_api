@@ -101,7 +101,7 @@ router.route('/auth/twitter/reverse')
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
-        oauth_callback: "https%3A%2F%2Fanimatch-nyan-api.herokuapp.com%2Ftwitter-callback",
+        oauth_callback: "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback",
         consumer_key: TWITTER_CONSUMER_KEY,
         consumer_secret: TWITTER_CONSUMER_SECRET
       }
@@ -188,8 +188,8 @@ var getOne = function (req, res) {
   res.json(user);
 };
 */
-router.route('/auth/me')
-  .get(authenticate, getCurrentUser, getOne);
+/*router.route('/auth/me')
+  .get(authenticate, getCurrentUser, getOne);*/
 
 app.use('/api/v1', router);
 /*
