@@ -18,15 +18,11 @@ const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
 const API_ROOT = process.env.API_ROOT || 'http://127.0.0.1:3000'
 const CLIENT_ROOT = process.env.CLIENT_ROOT || 'http://localhost:4000'
 
-console.log("api -> ", API_ROOT)
-console.log("client ->", CLIENT_ROOT)
-
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const app = express();
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
@@ -44,32 +40,21 @@ app.use(
   })
 );
 
-app.get('/health-check', (req, res) => {
-  res.json({greeting: "Hello World"})
-})
-
 app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(bodyParser.json());
 
-// passport-twitterの設定
 passport.use(new TwitterTokenStrategy({
     consumerKey: TWITTER_CONSUMER_KEY,
     consumerSecret: TWITTER_CONSUMER_SECRET
   },
-  // 認証後の処理
   function(token, tokenSecret, profile, done) {
     return done(null, profile);
   }
 ));
 
-router.route('/health-check').get(function(req, res) {
-  res.status(200);
-  res.send('Hello World');
-});
-
-var createToken = function(auth) {
+function createToken(auth) {
   return jwt.sign({
       id: auth.id
     }, 'my-secret',
@@ -78,22 +63,22 @@ var createToken = function(auth) {
     });
 };
 
-var generateToken = function (req, res, next) {
+function generateToken(req, res, next) {
   req.token = createToken(req.auth);
   return next();
-};
+}
 
-var sendToken = function (req, res) {
+function sendToken (req, res) {
   res.setHeader('x-auth-token', req.token);
   return res.status(200).send(JSON.stringify(req.user));
-};
+}
 
 router.route('/auth/twitter/reverse')
   .post(function(req, res) {
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
-        oauth_callback: "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback",
+        oauth_callback: "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback",// CLIENT_URLに差し替える
         consumer_key: TWITTER_CONSUMER_KEY,
         consumer_secret: TWITTER_CONSUMER_SECRET
       }
@@ -147,8 +132,7 @@ router.route('/auth/twitter')
     return next();
   }, generateToken, sendToken);
 
-//token handling middleware
-var authenticate = expressJwt({
+let authenticate = expressJwt({
   secret: 'my-secret',
   requestProperty: 'auth',
   algorithms: ['HS256'],
@@ -160,44 +144,12 @@ var authenticate = expressJwt({
   }
 });
 
-var authenticate = expressJwt({
-  secret: 'my-secret',
-  requestProperty: 'auth',
-  algorithms: ['HS256'],
-  getToken: function(req) {
-    if (req.headers['x-auth-token']) {
-      return req.headers['x-auth-token'];
-    }
-    return null;
-  }
-});
-
-var getCurrentUser = function(req, res, next) {
+function getCurrentUser(req, res, next) {
   console.log(req.auth)
-  /*User.findById(req.auth.id, function(err, user) {
-    if (err) {
-      next(err);
-    } else {
-      req.user = user;
-      next();
-    }
-  });*/
-};
-/*
-var getOne = function (req, res) {
-  var user = req.user.toObject();
-
-  delete user['twitterProvider'];
-  delete user['__v'];
-
-  res.json(user);
-};*/
+}
 
 router.route('/auth/me')
-  .get(authenticate, getCurrentUser/*, getOne*/);
-
-app.use('/api/v1', router);
-
+  .get(authenticate, getCurrentUser);
 
 app.use('/api/v1', router);
 
