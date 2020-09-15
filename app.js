@@ -3,14 +3,10 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const request = require('request')
 const passport = require('passport');
 const TwitterTokenStrategy = require('passport-twitter-token');
 const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
-expressJwt = require('express-jwt')
 const cors = require('cors')
-const router = express.Router();
 require('dotenv').config();
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
@@ -20,6 +16,7 @@ const CLIENT_ROOT = process.env.CLIENT_ROOT || 'http://localhost:4000'
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
 
 const app = express();
 
@@ -54,106 +51,7 @@ passport.use(new TwitterTokenStrategy({
   }
 ));
 
-function createToken(auth) {
-  return jwt.sign({
-      id: auth.id
-    }, 'my-secret',
-    {
-      expiresIn: '365d'
-    });
-};
-
-function generateToken(req, res, next) {
-  req.token = createToken(req.auth);
-  return next();
-}
-
-function sendToken (req, res) {
-  res.setHeader('x-auth-token', req.token);
-  return res.status(200).send(JSON.stringify(req.user));
-}
-
-router.route('/auth/twitter/reverse')
-  .post(function(req, res) {
-    request.post({
-      url: 'https://api.twitter.com/oauth/request_token',
-      oauth: {
-        oauth_callback: "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback",// CLIENT_URLに差し替える
-        consumer_key: TWITTER_CONSUMER_KEY,
-        consumer_secret: TWITTER_CONSUMER_SECRET
-      }
-    }, function (err, r, body) {
-      if (err) {
-        return res.send(500, { message: e.message });
-      }
-
-      var jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-      res.send(JSON.parse(jsonStr));
-    });
-  });
-
-router.route('/auth/twitter')
-  .post((req, res, next) => {
-    request.post({
-      url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
-      oauth: {
-        consumer_key: TWITTER_CONSUMER_KEY,
-        consumer_secret: TWITTER_CONSUMER_SECRET,
-        token: req.query.oauth_token
-      },
-      form: { oauth_verifier: req.query.oauth_verifier }
-    }, function (err, r, body) {
-      if (err) {
-        return res.send(500, { message: err.message });
-      }
-      try{
-        const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-        const parsedBody = JSON.parse(bodyString);
-
-        req.body['oauth_token'] = parsedBody.oauth_token;
-        req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
-        req.body['user_id'] = parsedBody.user_id;
-
-        next();
-      }catch (err) {
-        res.send(err)
-      }
-    });
-  }, passport.authenticate('twitter-token', {session: false}), function(req, res, next) {
-    if (!req.user) {
-      return res.send(401, 'User Not Authenticated');
-    }
-
-    // prepare token for API
-    req.auth = {
-      id: req.user.id
-    };
-
-    return next();
-  }, generateToken, sendToken);
-
-let authenticate = expressJwt({
-  secret: 'my-secret',
-  requestProperty: 'auth',
-  algorithms: ['HS256'],
-  getToken: function(req) {
-    if (req.headers['x-auth-token']) {
-      return req.headers['x-auth-token'];
-    }
-    return null;
-  }
-});
-
-function getCurrentUser(req, res, next) {
-  console.log(req.auth)
-  res.send({message: "success authenticate!"})
-}
-
-router.route('/auth/me')
-  .get(authenticate, getCurrentUser);
-
-app.use('/api/v1', router);
-
+app.use('/api/v1/auth', authRouter);
 app.use('/', indexRouter);
 app.use('/success', usersRouter);
 app.use('/logout', (req, res)=> {
