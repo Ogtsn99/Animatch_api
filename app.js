@@ -146,6 +146,7 @@ let authenticate = expressJwt({
 
 function getCurrentUser(req, res, next) {
   console.log(req.auth)
+  res.send({message: "success authenticate!"})
 }
 
 router.route('/auth/me')
