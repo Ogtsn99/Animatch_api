@@ -1,24 +1,34 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const passport = require('passport');
-const TwitterTokenStrategy = require('passport-twitter-token');
-const bodyParser = require('body-parser');
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const passport = require('passport')
+const TwitterTokenStrategy = require('passport-twitter-token')
+const bodyParser = require('body-parser')
 const cors = require('cors')
-require('dotenv').config();
-
+require('dotenv').config()
+const app = express()
+const User = require('./models/users')
+const Anime = require('./models/anime')
+const Fav_Relationship = require('./models/fav_relationships')
+const Watching_Relationship = require('./models/watching_relationships')
+const Watched_Relationship = require('./models/watched_relationships')
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
 const API_ROOT = process.env.API_ROOT || 'http://127.0.0.1:3000'
 const CLIENT_ROOT = process.env.CLIENT_ROOT || 'http://localhost:4000'
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const authRouter = require('./routes/auth');
+console.log("API_ROOT ->", API_ROOT)
+console.log("CLIENT_ROOT ->", CLIENT_ROOT)
+console.log("environment:", app.get('env'))
 
-const app = express();
+User.sync();
+Anime.sync();
+Fav_Relationship.sync();
+Watching_Relationship.sync();
+Watched_Relationship.sync();
+
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -51,9 +61,21 @@ passport.use(new TwitterTokenStrategy({
   }
 ));
 
-app.use('/api/v1/auth', authRouter);
-app.use('/', indexRouter);
-app.use('/success', usersRouter);
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
+const animeRouter = require('./routes/anime');
+const fav_relationshipsRouter = require('./routes/fav_relationships')
+const watched_relationshipsRouter = require('./routes/watched_relationships')
+const watching_relationshipsRouter = require('./routes/watching_relationships')
+
+app.use('/api/v1/auth', authRouter)
+app.use('/', indexRouter)
+app.use('/api/v1/users', usersRouter)
+app.use('/api/v1/anime', animeRouter)
+app.use('/api/v1/fav_relationships', fav_relationshipsRouter)
+app.use('/api/v1/watched_relationships', watched_relationshipsRouter)
+app.use('/api/v1/watching_relationships', watching_relationshipsRouter)
 app.use('/logout', (req, res)=> {
   req.logout()
   res.redirect('/')

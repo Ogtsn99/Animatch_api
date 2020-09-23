@@ -1,14 +1,41 @@
-var express = require('express');
-var router = express.Router();
+let express = require('express')
+let router = express.Router()
+const User = require('../models/users')
+const app = express()
 
-/* GET users listing. */
+function envMustBeDevelopment(req, res, next){
+  if(app.get("env") === "development") next();
+  else res.status(403).send("Sorry. You are not allowed to access.")
+}
+
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+  if(app.get("env") === "development")
+    User.findAll.then(users=> res.send(users)).catch(e=>{res.send(e)})
+  else User.findAll({attributes: ["id", "name", "profile", "createdAt", "updatedAt"]})
+    .then(users => res.send(users)).catch(e=>{res.send(e)})
+})
 
+router.post('/create', envMustBeDevelopment, (req, res) => {
+  User.create(req.body.user).then((user)=>{
+    res.send({user: user, message: "user created successfully!"})
+  })
+})
+
+// 未完成 // Userから idを取り出して返す
 router.get('/me', (req, res)=>{
+  console.log(User.findCurrentUser())
   if(req.user) res.send({ name: req.user.displayName})
   else res.send({message: "not logged in"})
 })
+
+router.get('/:id(\\d+)/', findUserById)
+
+function findUserById(req, res) {
+  User.findByPk(req.params.id, {attributes: ["id", "name", "profile", "createdAt", "updatedAt"]}).then(user => {
+    if (user) res.send({user: user})
+    else res.send({user: null, message: "No user found."})
+  })
+}
+
 
 module.exports = router;

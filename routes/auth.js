@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const jwt = require('jsonwebtoken');
+const express = require('express')
+const router = express.Router()
+const jwt = require('jsonwebtoken')
 const request = require('request')
-const passport = require('passport');
+const passport = require('passport')
 const expressJwt = require('express-jwt')
+const User = require('../models/users')
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
@@ -54,13 +55,25 @@ function TwitterAuthorization(req, res, next){
   });
 }
 
+function createUser(req, res, next){
+  if (!req.user) return res.send(401, 'Failed to Authorization')
+  User.findOne({
+    where: {twitter_id: req.user.id}
+  }).then((user)=>{
+    if(!user) User.create({
+      twitter_id: req.user.id,
+      name: req.user.displayName
+    })
+    return next()
+  }).catch(e => res.send(e))
+}
+
 function setTwitterIdForGenerateToken(req, res, next) {
-  if (!req.user) return res.send(401, 'Failed to Authorization');
   //　userのtwitter_idがトークンにセットされるための設定
   req.auth = {
     id: req.user.id
-  };
-  return next();
+  }
+  return next()
 }
 
 function generateToken(req, res, next) {
@@ -84,34 +97,23 @@ let authenticate = expressJwt({
   algorithms: ['HS256'],
   getToken: function(req) {
     if (req.headers['x-auth-token']) {
-      return req.headers['x-auth-token'];
+      return req.headers['x-auth-token']
     }
-    return null;
+    return null
   }
-});
-
-//// 未完成 ////
-//// req.auth.idはTwitterIdであり、 TwitterIdが一致するユーザーのIdを返す
-//// req.auth
-function getCurrentUser(req, res, next) {
-  if(req.auth){
-    console.log(req.auth)
-    let TwitterId = req.auth.id
-    //idをsendする
-    res.send({message: "success authenticate!"})
-  }else res.send({message: "failed to authenticate"})
-}
+})
 
 // Twitterにリクエストトークンを発行してもらうためのエンドポイント
-router.post('/twitter/reverse', getRequestTokenAndParseToJson);
+router.post('/twitter/reverse', getRequestTokenAndParseToJson)
 
 // Twitterに認可してもらうためのエンドポイント。成功すればreq.userにはTwitterのユーザー情報が入る
+// また、ここでuserを作る
 router.post('/twitter',TwitterAuthorization,
   passport.authenticate('twitter-token', {session: false}, null),
-  setTwitterIdForGenerateToken , generateToken, sendToken);
+  createUser, setTwitterIdForGenerateToken, generateToken, sendToken)
 
 // httpヘッダーにトークンを含めて使う必要がある。認証に成功すればユーザーのidが帰ってくる
-router.get('/me', authenticate, getCurrentUser);
+router.get('/me', User.findCurrentUser)
 
 // 状態確認用
 router.get('/yay', (req, res, next) => {
