@@ -21,11 +21,11 @@ router.post('/create', envMustBeDevelopment, (req, res) => {
   })
 })
 
-// 未完成 // Userから idを取り出して返す
-router.get('/me', (req, res)=>{
-  console.log(User.findCurrentUser())
-  if(req.user) res.send({ name: req.user.displayName})
-  else res.send({message: "not logged in"})
+// ユーザーが帰ってくる
+router.get('/me', async (req, res)=>{
+  let user = await User.findCurrentUser(req)
+  if(user) res.send({user: user})
+  else res.send({user: null, message: "Authentication Failed"})
 })
 
 router.get('/:id(\\d+)/', findUserById)

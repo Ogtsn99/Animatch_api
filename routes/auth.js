@@ -5,15 +5,21 @@ const request = require('request')
 const passport = require('passport')
 const expressJwt = require('express-jwt')
 const User = require('../models/users')
+const app = express()
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
+let oauth_callback
+if(app.get('env') === "development")
+  oauth_callback = "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback"
+else
+  oauth_callback = "https%3A%2F%2Fanimatch-nyan.herokuapp.com%2Ftwitter-callback"
 
 function getRequestTokenAndParseToJson(req, res) {
   request.post({
     url: 'https://api.twitter.com/oauth/request_token',
     oauth: {
-      oauth_callback: "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback",// CLIENT_URLに差し替える
+      oauth_callback: oauth_callback,
       consumer_key: TWITTER_CONSUMER_KEY,
       consumer_secret: TWITTER_CONSUMER_SECRET
     }
@@ -111,9 +117,6 @@ router.post('/twitter/reverse', getRequestTokenAndParseToJson)
 router.post('/twitter',TwitterAuthorization,
   passport.authenticate('twitter-token', {session: false}, null),
   createUser, setTwitterIdForGenerateToken, generateToken, sendToken)
-
-// httpヘッダーにトークンを含めて使う必要がある。認証に成功すればユーザーのidが帰ってくる
-router.get('/me', User.findCurrentUser)
 
 // 状態確認用
 router.get('/yay', (req, res, next) => {
