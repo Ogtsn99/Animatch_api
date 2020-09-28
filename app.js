@@ -7,7 +7,6 @@ const passport = require('passport')
 const TwitterTokenStrategy = require('passport-twitter-token')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const expressJwt = require('express-jwt')
 require('dotenv').config()
 const app = express()
 const User = require('./models/users')
@@ -47,18 +46,6 @@ app.use(
     exposedHeaders: ['x-auth-token']
   })
 );
-
-app.use(expressJwt({
-  secret: 'my-secret',
-  requestProperty: 'auth',
-  algorithms: ['HS256'],
-  getToken: function (req) {
-    if (req.headers['x-auth-token']) {
-      return req.headers['x-auth-token'];
-    }
-    return null;
-  }
-}))
 
 app.use(bodyParser.urlencoded({
   extended: true

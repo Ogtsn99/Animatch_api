@@ -2,11 +2,24 @@ let express = require('express')
 let router = express.Router()
 const User = require('../models/users')
 const app = express()
+const expressJwt = require('express-jwt')
 
 function envMustBeDevelopment(req, res, next){
   if(app.get("env") === "development") next();
   else res.status(403).send("Sorry. You are not allowed to access.")
 }
+
+let authentication = expressJwt({
+  secret: 'my-secret',
+  requestProperty: 'auth',
+  algorithms: ['HS256'],
+  getToken: function (req) {
+    if (req.headers['x-auth-token']) {
+      return req.headers['x-auth-token'];
+    }
+    return null;
+  }
+})
 
 router.get('/', function(req, res, next) {
   if(app.get("env") === "development")
@@ -21,9 +34,13 @@ router.post('/create', envMustBeDevelopment, (req, res) => {
   })
 })
 
+// /meにいく前にauthentiactionを実行する
+router.use('/me', authentication)
+
 // ユーザーが帰ってくる
 router.get('/me', async (req, res)=>{
   let user = await User.findCurrentUser(req)
+  console.log(user)
   if(user) res.send({user: user})
   else res.send({user: null, message: "Authentication Failed"})
 })
