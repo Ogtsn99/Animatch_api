@@ -15,6 +15,7 @@ if(app.get('env') === "development")
 else
   oauth_callback = "https%3A%2F%2Fanimatch-nyan.herokuapp.com%2Ftwitter-callback"
 
+console.log(app.get('env'), oauth_callback)
 function getRequestTokenAndParseToJson(req, res) {
   request.post({
     url: 'https://api.twitter.com/oauth/request_token',

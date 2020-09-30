@@ -34,7 +34,7 @@ router.post('/create', envMustBeDevelopment, (req, res) => {
   })
 })
 
-// /meにいく前にauthentiactionを実行する
+// /meにいく前にauthenticationを実行する
 router.use('/me', authentication)
 
 // ユーザーが帰ってくる
