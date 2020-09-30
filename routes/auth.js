@@ -9,14 +9,15 @@ const app = express()
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
 const TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET
-let oauth_callback
-if(app.get('env') === "development")
-  oauth_callback = "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback"
-else
-  oauth_callback = "https%3A%2F%2Fanimatch-nyan.herokuapp.com%2Ftwitter-callback"
 
-console.log(app.get('env'), oauth_callback)
 function getRequestTokenAndParseToJson(req, res) {
+  let oauth_callback
+  if(app.get('env') === "development")
+    oauth_callback = "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback"
+  else
+    oauth_callback = "https%3A%2F%2Fanimatch-nyan.herokuapp.com%2Ftwitter-callback"
+
+  console.log(app.get('env'), oauth_callback)
   request.post({
     url: 'https://api.twitter.com/oauth/request_token',
     oauth: {
