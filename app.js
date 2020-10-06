@@ -10,6 +10,7 @@ const cors = require('cors')
 require('dotenv').config()
 const app = express()
 const User = require('./models/users')
+const UserInfo = require('./models/userInfo')
 const Anime = require('./models/anime')
 const Fav_Relationship = require('./models/fav_relationships')
 const Watching_Relationship = require('./models/watching_relationships')
@@ -24,11 +25,14 @@ console.log("CLIENT_ROOT ->", CLIENT_ROOT)
 console.log("environment:", app.get('env'))
 
 User.sync();
+UserInfo.sync()
 Anime.sync();
 Fav_Relationship.sync();
 Watching_Relationship.sync();
 Watched_Relationship.sync();
 
+User.hasOne(UserInfo, {foreignKey: 'user_id'})
+UserInfo.belongsTo(User, {foreignKey: 'user_id'})
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');

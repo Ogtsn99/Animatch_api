@@ -1,5 +1,6 @@
 const loader = require('./sequelize-loader');
 const Sequelize = loader.Sequelize;
+const UserInfo = require('../models/userInfo')
 
 const User = loader.database.define('users', {
   id: {
@@ -16,9 +17,6 @@ const User = loader.database.define('users', {
   name: {
     type: Sequelize.STRING(25),
     allowNull: false
-  },
-  profile: {
-    type: Sequelize.STRING(510)
   }
 }, {
   freezeTableName: true,
@@ -43,5 +41,6 @@ User.findCurrentUser = (req)=> {
     }else return reject()
   })
 }
+
 
 module.exports = User;

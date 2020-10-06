@@ -1,6 +1,7 @@
 let express = require('express')
 let router = express.Router()
 const User = require('../models/users')
+const UserInfo = require('../models/userInfo')
 const app = express()
 const expressJwt = require('express-jwt')
 
@@ -21,7 +22,7 @@ let authentication = expressJwt({
   }
 })
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   if(app.get("env") === "development")
     User.findAll.then(users=> res.send(users)).catch(e=>{res.send(e)})
   else User.findAll({attributes: ["id", "name", "profile", "createdAt", "updatedAt"]})
@@ -48,11 +49,17 @@ router.get('/me', async (req, res)=>{
 router.get('/:id(\\d+)/', findUserById)
 
 function findUserById(req, res) {
-  User.findByPk(req.params.id, {attributes: ["id", "name", "profile", "createdAt", "updatedAt"]}).then(user => {
+  User.findByPk(req.params.id, {attributes: ["id", "name", "createdAt", "updatedAt"]}).then(user => {
     if (user) res.send({user: user})
     else res.send({user: null, message: "No user found."})
   })
 }
 
+router.get('/showInfo/:id(\\d+)/', findUserWithInfo)
+
+async function findUserWithInfo(req, res) {
+  const userInfo = await User.findByPk(req.params.id, {include: UserInfo})
+  res.send({user: userInfo})
+}
 
 module.exports = router;

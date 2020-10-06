@@ -5,6 +5,7 @@ const request = require('request')
 const passport = require('passport')
 const expressJwt = require('express-jwt')
 const User = require('../models/users')
+const UserInfo = require('../models/userInfo')
 const app = express()
 
 const TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY
@@ -16,8 +17,6 @@ function getRequestTokenAndParseToJson(req, res) {
     oauth_callback = "http%3A%2F%2Flocalhost%3A4000%2Ftwitter-callback"
   else
     oauth_callback = "https%3A%2F%2Fanimatch-nyan.herokuapp.com%2Ftwitter-callback"
-
-  console.log(app.get('env'), oauth_callback)
   request.post({
     url: 'https://api.twitter.com/oauth/request_token',
     oauth: {
@@ -67,10 +66,14 @@ function createUser(req, res, next){
   if (!req.user) return res.send(401, 'Failed to Authorization')
   User.findOne({
     where: {twitter_id: req.user.id}
-  }).then((user)=>{
-    if(!user) User.create({
+  }).then(async (user)=>{
+    if(!user) user = await User.create({
       twitter_id: req.user.id,
       name: req.user.displayName
+    })
+    UserInfo.create({
+      profile: "",
+      user_id: user.id
     })
     return next()
   }).catch(e => res.send(e))
