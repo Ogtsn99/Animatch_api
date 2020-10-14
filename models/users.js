@@ -31,10 +31,12 @@ const User = loader.database.define('users', {
   ]
 });
 
-User.findCurrentUser = (req)=> {
+User.findCurrentUser = (req, withoutInfo)=> {
+  let option = {where: {twitter_id: req.auth.id}, include: UserInfo}
+  if(withoutInfo) option = {where: {twitter_id: req.auth.id}}
   return new Promise((resolve, reject)=>{
     if (req.auth) {
-      User.findOne({where: {twitter_id: req.auth.id}}).then( user => {
+      User.findOne(option).then( user => {
         if(user) return resolve(user)
         else return reject()
       })

@@ -1,6 +1,5 @@
 const loader = require('./sequelize-loader');
 const Sequelize = loader.Sequelize;
-const User = require('../models/users')
 
 const UserInfo = loader.database.define('user_info', {
   profile: {
@@ -16,7 +15,8 @@ const UserInfo = loader.database.define('user_info', {
     type: Sequelize.STRING(10)
   },
   user_id: {
-    type: Sequelize.INTEGER
+    type: Sequelize.INTEGER,
+    unique: true
   }
 }, {
   freezeTableName: true,
@@ -27,6 +27,16 @@ const UserInfo = loader.database.define('user_info', {
     }
   ]
 });
+
+UserInfo.get = (user)=> {
+  return new Promise((resolve, reject)=>{
+    UserInfo.findOne({where: {user_id: user.id}}).then( user => {
+      if(user) return resolve(user)
+      else return reject()
+    })
+  })
+}
+
 
 
 module.exports = UserInfo
