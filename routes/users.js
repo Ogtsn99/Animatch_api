@@ -112,4 +112,12 @@ router.put('/edit/gender/:id(\\d+)', authentication, addUserAndUserInfoToReq, as
   res.send({message: "gender was changed successfully"})
 })
 
+router.put('/edit/profile/:id(\\d+)', authentication, addUserAndUserInfoToReq, async (req, res)=>{
+  if(req.user.id.toString() !== req.params.id) return res.send({error: "You aren't allowed"})
+  const userInfo = req.userInfo
+  userInfo.profile = req.body.profile
+  await userInfo.save()
+  res.send({message: "gender was changed successfully"})
+})
+
 module.exports = router;
